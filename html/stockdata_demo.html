@@ -1,0 +1,281 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>ROCKET: inference for graphical models (stock data demo)</title><meta name="generator" content="MATLAB 8.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2015-03-26"><meta name="DC.source" content="stockdata_demo.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>ROCKET: inference for graphical models (stock data demo)</h1><!--introduction--><p>Given a sparse undirected graphical model with covariance structure <img src="stockdata_demo_eq11513513746854591617.png" alt="$\Sigma$">, we would like to perform statistical inference on the "edges" in the graph, i.e. test whether entries of <img src="stockdata_demo_eq04062800161361915814.png" alt="$\Omega = \Sigma^{-1}$"> are zero or nonzero.</p><p>ROCKET is a method for computing asymptotically normal estimates of each entry of <img src="stockdata_demo_eq01003107565813904020.png" alt="$\Omega$">, which is designed for the transelliptical model.</p><div><ul><li>Preprint: Barber &amp; Kolar 2015, "ROCKET: Robust Confidence Intervals via Kendall?s Tau for Transelliptical Graphical Models", <a href="http://arxiv.org/abs/1502.07641">http://arxiv.org/abs/1502.07641</a></li></ul></div><p>This script compares the ROCKET method with:</p><div><ul><li>a Gaussian graphical model method, which using Pearson's correlation rather than Kendall's tau, and is denoted as "Pearson" below  (Ren et al 2015, "Asymptotic normality and optimalities in estimation of large gaussian graphical model.")</li><li>the "nonparanormal" method, designed for nonparanormal i.e. Gaussian copula models.  (Liu et al 2009, "The nonparanormal: Semiparametric estimation of high dimensional undirected graphs")</li></ul></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Setup: load in the stock data</a></li><li><a href="#2">Split into subsamples</a></li><li><a href="#3">Run each method</a></li><li><a href="#4">Compute sample variances</a></li><li><a href="#5">Plot sample variances</a></li></ul></div><h2>Setup: load in the stock data<a name="1"></a></h2><p>This data set (obtained via the R package "huge", and sourced initially from Yahoo Finance) contains daily closing prices for 452 stocks over several years.</p><div><ul><li>The matrix "data" contains daily log-returns, that is, log(closing price of stock <img src="stockdata_demo_eq07225361342133155126.png" alt="$j$"> on day <img src="stockdata_demo_eq12299651387936055368.png" alt="$i+1$"> / closing price of stock <img src="stockdata_demo_eq07225361342133155126.png" alt="$j$"> on day <img src="stockdata_demo_eq05671228016298599287.png" alt="$i$">)</li><li>The vector "labels" contains stock category labels:</li></ul></div><pre>1 = Industrials
+2 = Financials
+3 = Health care
+4 = Consumer discretionary
+5 = Information technology
+6 = Utilities
+7 = Materials
+8 = Consumer staples
+9 = Telecommunications services
+10 = Energy</pre><pre class="codeinput">data=dlmread(<span class="string">'stock_logreturns.txt'</span>);
+labels=dlmread(<span class="string">'stock_categories.txt'</span>);
+[N,P]=size(data);
+</pre><h2>Split into subsamples<a name="2"></a></h2><p>We split the data set into <img src="stockdata_demo_eq05116215532977998560.png" alt="$L=25$"> subsamples each of size <img src="stockdata_demo_eq13676532268009314876.png" alt="$n=50$">.</p><p>For a fast example, we will work only with the stocks in category 7 (Materials), for a total of <img src="stockdata_demo_eq03867572792104294615.png" alt="$p=29$"> stocks.</p><p>To reproduce the experiment in the ROCKET paper, keep categories 7 and 8, i.e. set keep_labels=[7 8], and set the random seed as seed=12345.</p><pre class="codeinput">n=50;
+L=floor(N/n);
+seed=12345;rng(seed);
+split_sample=reshape(randsample(1:N,n*L),n,L);
+keep_labels=7;
+X=data(:,ismember(labels,keep_labels));
+p=size(X,2);
+pC2=nchoosek(p,2);
+</pre><h2>Run each method<a name="3"></a></h2><p>For each subsample <img src="stockdata_demo_eq13758709304212731761.png" alt="$\ell=1,\dots,L$">, let <img src="stockdata_demo_eq07681588251686372532.png" alt="$X^{(\ell)}$"> denote the reduced data set from this subsample (a <img src="stockdata_demo_eq15950647373142238361.png" alt="$n\times p$"> matrix) We run the method on the reduced data set to produce an estimate and an estimated variance of each edge parameter <img src="stockdata_demo_eq06207525949648787058.png" alt="$\Omega_{ab}$">. This estimate and estimated variance are denoted by <img src="stockdata_demo_eq17745850496958345306.png" alt="$\check{\Omega}^{(\ell)}_{ab}$"> and <img src="stockdata_demo_eq05921839387586653310.png" alt="$(\check{S}^{(\ell)}_{ab})^2$"></p><p>Then we compute a z-score,</p><p><img src="stockdata_demo_eq14555438771924094453.png" alt="$$ z^{(\ell)}_{ab} =&#xA;\frac{\check{\Omega}^{(\ell)}_{ab}}{\check{S}^{(\ell)}_{ab}} $$"></p><p>We repeat this for all three methods, across subsamples <img src="stockdata_demo_eq08791264202177448659.png" alt="$\ell$"> and edges <img src="stockdata_demo_eq06878066491367739916.png" alt="$(a,b)$">.</p><p>Running this on the stocks in category 7 only, this takes <img src="stockdata_demo_eq04873700875981793758.png" alt="$\approx$"> 5 minutes to run on a Macbook Pro.</p><pre class="codeinput">zstat=zeros(L,pC2,3);
+tic;
+<span class="keyword">for</span> l=1:L,
+    edge_index=0;
+    <span class="keyword">for</span> a=1:(p-1),
+        <span class="keyword">for</span> b=(a+1):p,
+            edge_index=edge_index+1;
+            <span class="comment">% ROCKET</span>
+            [est_value, est_variance] = teInference(X(split_sample(:,l),:),a,b,1,0);
+            zstat(l,edge_index,1)=est_value/sqrt(est_variance);
+            <span class="comment">% Pearson</span>
+            [est_value, est_variance] = teInference(X(split_sample(:,l),:),a,b,1,1);
+            zstat(l,edge_index,2)=est_value/sqrt(est_variance);
+            <span class="comment">% Nonparanormal</span>
+            [est_value, est_variance] = teInference(X(split_sample(:,l),:),a,b,1,2);
+            zstat(l,edge_index,3)=est_value/sqrt(est_variance);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+toc
+</pre><pre class="codeoutput">Elapsed time is 261.664666 seconds.
+</pre><h2>Compute sample variances<a name="4"></a></h2><p>For each method, and for each edge <img src="stockdata_demo_eq06878066491367739916.png" alt="$(a,b)$">, the theory states that each <img src="stockdata_demo_eq14561201444624811222.png" alt="$z^{(\ell)}_{ab}$"> is distributed (asymptotically) as a normal random variable with variance 1, and with a mean that is determined by the true edge parameter <img src="stockdata_demo_eq06207525949648787058.png" alt="$\Omega_{ab}$">. (The mean is zero if <img src="stockdata_demo_eq09262851685453191068.png" alt="$\Omega_{ab}=0$">, and is nonzero otherwise.)</p><p>Even though we do not know this mean (since we do not know which edges are nonzero), we can still check the variance: the vector <img src="stockdata_demo_eq10674106443542130097.png" alt="$(z^{(1)}_{ab},\dots,z^{(L)}_{ab})$"> should have a sample variance of roughly 1.</p><p>Here we calculate the sample variances, and for each method show the average sample variance (where the average is taken across all <img src="stockdata_demo_eq08806534487407040127.png" alt="${p\choose 2}$"> edges <img src="stockdata_demo_eq06878066491367739916.png" alt="$(a,b)$">).</p><pre class="codeinput">sample_vars = sum(zstat.^2,2)/pC2 - (sum(zstat,2)/pC2).^2;
+sample_vars = reshape(sample_vars,L,3);
+
+disp(<span class="string">'    ROCKET    Pearson   Nonparanormal'</span>)
+disp(mean(sample_vars))
+</pre><pre class="codeoutput">    ROCKET    Pearson   Nonparanormal
+    1.0402    1.3848    1.3621
+
+</pre><h2>Plot sample variances<a name="5"></a></h2><p>For each method, we plot a histogram the sample variance of the sequence <img src="stockdata_demo_eq10674106443542130097.png" alt="$(z^{(1)}_{ab},\dots,z^{(L)}_{ab})$">, across all edges <img src="stockdata_demo_eq06878066491367739916.png" alt="$(a,b)$"></p><p>Since these values are z-scores, the methods should ideally exhibit sample variances equal to 1 on average</p><pre class="codeinput">figure
+hist(sample_vars(:,1))
+title(strcat(<span class="string">'ROCKET (mean='</span>,num2str(mean(sample_vars(:,1)),5),<span class="string">')'</span>),<span class="string">'FontSize'</span>,16)
+figure
+hist(sample_vars(:,2))
+title(strcat(<span class="string">'Pearson (mean='</span>,num2str(mean(sample_vars(:,2)),5),<span class="string">')'</span>),<span class="string">'FontSize'</span>,16)
+figure
+hist(sample_vars(:,3))
+title(strcat(<span class="string">'Nonparanormal (mean='</span>,num2str(mean(sample_vars(:,3)),5),<span class="string">')'</span>),<span class="string">'FontSize'</span>,16)
+</pre><img vspace="5" hspace="5" src="stockdata_demo_01.png" alt=""> <img vspace="5" hspace="5" src="stockdata_demo_02.png" alt=""> <img vspace="5" hspace="5" src="stockdata_demo_03.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% ROCKET: inference for graphical models (stock data demo)
+% Given a sparse undirected graphical model with covariance structure
+% $\Sigma$, we would like to perform statistical inference on the "edges" in 
+% the graph, i.e. test whether entries of $\Omega = \Sigma^{-1}$ are zero
+% or nonzero. 
+%
+% ROCKET is a method for computing asymptotically normal estimates of each
+% entry of $\Omega$, which is designed for the transelliptical model.
+%
+% * Preprint: Barber & Kolar 2015, "ROCKET: Robust Confidence Intervals 
+% via Kendall?s Tau for Transelliptical Graphical Models",
+% http://arxiv.org/abs/1502.07641
+%
+% This script compares the ROCKET method with:
+%
+% * a Gaussian graphical model method, which using Pearson's correlation
+% rather than Kendall's tau, and is denoted as "Pearson" below
+%  (Ren et al 2015, "Asymptotic normality and optimalities in estimation
+% of large gaussian graphical model.")
+% * the "nonparanormal" method, designed for nonparanormal i.e. Gaussian
+% copula models.
+%  (Liu et al 2009, "The nonparanormal: Semiparametric estimation of
+% high dimensional undirected graphs")
+%
+%% Setup: load in the stock data
+% This data set (obtained via the R package "huge", and sourced initially
+% from Yahoo Finance) contains daily closing prices for 452 stocks over
+% several years.
+%
+% * The matrix "data" contains daily log-returns, that is,
+% log(closing price of stock $j$ on day $i+1$ / closing price of stock $j$ on day
+% $i$)
+% * The vector "labels" contains stock category labels:
+%
+%  1 = Industrials
+%  2 = Financials
+%  3 = Health care
+%  4 = Consumer discretionary
+%  5 = Information technology
+%  6 = Utilities
+%  7 = Materials
+%  8 = Consumer staples
+%  9 = Telecommunications services
+%  10 = Energy
+
+data=dlmread('stock_logreturns.txt');
+labels=dlmread('stock_categories.txt');
+[N,P]=size(data);
+
+%% Split into subsamples
+% We split the data set into $L=25$ subsamples each of size $n=50$.
+%
+% For a fast example, we will work only with the stocks in category 7
+% (Materials), for a total of $p=29$ stocks.
+%
+% To reproduce the experiment in the ROCKET paper, keep categories 7 and 8,
+% i.e. set keep_labels=[7 8], and set the random seed as seed=12345.
+
+n=50;
+L=floor(N/n);
+seed=12345;rng(seed);
+split_sample=reshape(randsample(1:N,n*L),n,L);
+keep_labels=7;
+X=data(:,ismember(labels,keep_labels));
+p=size(X,2);
+pC2=nchoosek(p,2);
+
+%% Run each method
+% For each subsample $\ell=1,\dots,L$, let $X^{(\ell)}$ denote the reduced
+% data set from this subsample (a $n\times p$ matrix)
+% We run the method on the reduced data set to produce
+% an estimate and an estimated variance of each edge parameter
+% $\Omega_{ab}$. This estimate and estimated variance are denoted by
+% $\check{\Omega}^{(\ell)}_{ab}$ and
+% $(\check{S}^{(\ell)}_{ab})^2$
+%
+% Then we compute a z-score,
+%
+% $$ z^{(\ell)}_{ab} =
+% \frac{\check{\Omega}^{(\ell)}_{ab}}{\check{S}^{(\ell)}_{ab}} $$
+%
+% We repeat this for all three methods, across subsamples $\ell$ and edges
+% $(a,b)$.
+%
+% Running this on the stocks in category 7 only,
+% this takes $\approx$ 5 minutes to run on a Macbook Pro.
+
+zstat=zeros(L,pC2,3);
+tic;
+for l=1:L,
+    edge_index=0;
+    for a=1:(p-1),
+        for b=(a+1):p,
+            edge_index=edge_index+1;
+            % ROCKET
+            [est_value, est_variance] = teInference(X(split_sample(:,l),:),a,b,1,0);
+            zstat(l,edge_index,1)=est_value/sqrt(est_variance);
+            % Pearson
+            [est_value, est_variance] = teInference(X(split_sample(:,l),:),a,b,1,1);
+            zstat(l,edge_index,2)=est_value/sqrt(est_variance);
+            % Nonparanormal
+            [est_value, est_variance] = teInference(X(split_sample(:,l),:),a,b,1,2);
+            zstat(l,edge_index,3)=est_value/sqrt(est_variance);
+        end
+    end
+end
+toc
+
+%% Compute sample variances
+% For each method, and for each edge $(a,b)$, the theory states that each
+% $z^{(\ell)}_{ab}$ is distributed (asymptotically) as a normal random
+% variable with variance 1, and with a mean that is determined by the true
+% edge parameter $\Omega_{ab}$. (The mean is zero if $\Omega_{ab}=0$, and
+% is nonzero otherwise.)
+%
+% Even though we do not know this mean (since we do not know which edges
+% are nonzero), we can still check the variance: the vector 
+% $(z^{(1)}_{ab},\dots,z^{(L)}_{ab})$ should have a sample variance of
+% roughly 1.
+%
+% Here we calculate the sample variances, and for each method show the 
+% average sample variance (where the average is taken across all 
+% ${p\choose 2}$ edges $(a,b)$).
+
+sample_vars = sum(zstat.^2,2)/pC2 - (sum(zstat,2)/pC2).^2;
+sample_vars = reshape(sample_vars,L,3);
+
+disp('    ROCKET    Pearson   Nonparanormal')
+disp(mean(sample_vars))
+
+
+%% Plot sample variances
+% For each method,
+% we plot a histogram the sample variance of the sequence
+% $(z^{(1)}_{ab},\dots,z^{(L)}_{ab})$, across all edges $(a,b)$
+%
+% Since these values are z-scores, the methods should ideally exhibit
+% sample variances equal to 1 on average
+
+figure
+hist(sample_vars(:,1))
+title(strcat('ROCKET (mean=',num2str(mean(sample_vars(:,1)),5),')'),'FontSize',16)
+figure
+hist(sample_vars(:,2))
+title(strcat('Pearson (mean=',num2str(mean(sample_vars(:,2)),5),')'),'FontSize',16)
+figure
+hist(sample_vars(:,3))
+title(strcat('Nonparanormal (mean=',num2str(mean(sample_vars(:,3)),5),')'),'FontSize',16)
+
+
+
+##### SOURCE END #####
+--></body></html>
