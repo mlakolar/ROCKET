@@ -18,7 +18,12 @@ function [eP, eVar, ISa, ISb] = teInference(Y, a, b, methodType, covarianceType,
 %               0 (default)     rank correlation
 %               1               pearson correlation
 %               2               pearson correlation after marginal
-%                               transformatoin
+%                               transformation
+%
+% Returns:
+%              eP               estimated omega_ab
+%              eVar             estimated variance of \check omega_ab (eP)
+%              ISa, ISb         estimated neighbourhoods for nodes a and b
 
 
 if nargin == 3
